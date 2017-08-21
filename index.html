@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>EcmaScript6 Promises</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/sky.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h3>ECMAScript 6 Promises</h3>
+					<p>Promise provides a convenient way to organize asynchronous code.</p>
+					<p>
+						Promise is a special object that contains its state.
+						At first it is in pending ("<i>waiting</i>") state, 
+						then in fulfilled ("<i>executed successfully</i>") or rejected ("<i>executed with an error</i>") state.
+						here is a term describing the state set (<i>settled</i>), this is the state when the promise is <i>fulfilled</i> or <i>rejected</i>, but is not in a waiting state.
+            		</p>
+					<img src = "1.png" width = "500">
+				</section>
+			
+				<section>
+					<h3>Syntax</h3>
+
+					<p><code>new Promise(executor);</code></p>
+					<p><code>new Promise(function(resolve, reject) { ... });</code></p>
+
+           			 <p><i>executor</i> is a function object with two resolve and reject arguments. The first argument causes successful fulfillment of the promise, the second rejects it. We can call these functions after the completion of our operation.</p>
+            		 <p>You can hang a callback of two types on the promise</p>
+					<ul>
+						<li>onFulfilled - triggered when the promise in the "completed successfully" state.</li>
+						<li>onRejected - triggered when the promise in the "executed with an error" state.</li>
+					<ul>
+				</section>
+					
+				<section>
+					<p>The method of use is as follows:</p>
+					<ol>
+						<li>The code that needs to do something asynchronously creates a promise object and returns it.</li>
+						<li>The external code, having received promise, hangs on it handlers.</li>
+						<li>When the process is completed, the corresponding handlers in the external code are automatically called</li>
+					</ol>
+				</section>
+
+				<section>
+						<p>Example of creating Promise:</p>
+<pre>
+<code>
+var promise = new Promise(function(resolve, reject) {
+	setTimeout(() => {
+		// will translate the promise into the "fulfilled" state with the result "Promise value"
+		resolve("Promise value"); 
+	}, 1000);
+})
+
+console.log(1); // some code for execution that is not related to promise
+
+// A universal method for hanging handlers
+promise.then(
+	onFulfilled, // onFulfilled is a function that will be called with the result at resolve.
+	onRejected   // оnRejected is a function that will be called with an error when reject.
+);
+
+function onFulfilled(result) {
+	alert("Fulfilled: " + result);
+}
+		
+function onRejected(error) {
+	alert("Rejected: " + error);
+}
+</code>
+</pre>
+				</section>
+<section>
+				<p>You can assign both the handler directly, and only one:</p>
+				<pre><code>
+promise.then(onFulfilled);
+promise.then(null, onRejected);
+			
+// we can use .catch instead of .then (null, onRejected)
+promise.catch(onRejected);
+				</code></pre>				
+			
+						<p>If a synchronous throw (or other error) occurs in the promise function, then the reject is called:</p>
+						<pre><code>
+let promise = new Promise((resolve, reject) => {
+	throw new Error("There's been an error!!!");
+})
+								  
+promise.catch(alert);
+						</code></pre>
+						<p>If a problem occurs during the execution, reject is called not with a string, but with an error object of type new Error:</p>
+				</section>
+				
+				
+				<section>
+						<h3>The chains of promises</h3>
+						<p>Chaining allows you to build asynchronous chains of promises.</p>
+					   
+						<pre><code>
+var promise = new Promise(function(resolve, reject) {
+	resolve(1); 
+})
+					
+promise
+.then(a => a + 2)
+.then(b => b + 5)
+.then(alert)
+.catch(err => {
+alert("error:" + err);
+});
+					
+						 </code></pre>	
+				</section>
+
+				<section>
+						<h3>Promise methods</h3>
+						
+						 <p>If we want to implement several asynchronous processes simultaneously and process their result in the Promise class, there are the following static methods.</p>
+						 <h5>Promise.all(iterable)</h5>
+						 <pre><code>
+function sqrt(x) {
+	return new Promise((resolve, reject) => {
+		if (x >= 0) {
+			let result = Math.sqrt(x);
+			resolve(result);
+		}
+		else {
+			reject(new Error("Error: the value is negative!!!"));
+		}
+	})
+}
+					 
+Promise.all([
+	sqrt(9),
+	sqrt(15)
+])
+.then(results => {
+	alert(results);
+});
+						 </code></pre>
+				</section>
+						 <section>
+						 <h3>Alternative method:</h3>
+						 <pre><code>
+let vars = [
+	9,
+	15
+];
+					 
+Promise.all(vars.map(sqrt))
+.then(results => {
+	alert(results);
+});
+						 </code></pre>
+				</section>
+
+				
+				<section>
+						<h3>Promise.resolve(value)</h3>
+						<p>The Promise.resolve (value) call creates a successfully executed promise with the result value.</p>
+					
+					
+						<pre><code>
+Promise.resolve(value)  similar to  new Promise((resolve) => resolve(value))
+Promise.resolve(45)
+.then(sqrt)
+.then(alert);
+						</code></pre>
+					
+					
+						<p>Promise.resolve is used when you want to build an asynchronous chain, and the initial result is already there.</p>
+				</section>
+				<section>
+						<h3>Promise.reject(error)</h3>
+						<p>Promise.reject (error) creates an already executed promise, but not with a successful result, but with an error error.</p>
+					
+					
+						<pre><code>
+Promise.reject(error)  similar to  new Promise((null, reject) => reject(error))
+						</code></pre>
+						<p>The Promise.reject method is used very rarely, much less often than resolve, because the error usually occurs not at the beginning of the chain, but in the process of its execution.</p>
+						
+					
+					
+						<p>The promises have some limitations. In particular, the standard does not provide for any method for "cancellation" of promise, although in some situations (http-requests) this would be quite convenient.</p>
+						
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
